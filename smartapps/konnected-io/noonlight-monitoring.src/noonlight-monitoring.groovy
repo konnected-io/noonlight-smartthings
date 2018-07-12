@@ -13,6 +13,9 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  */
+public static String version() { return "0.0.3" }
+public static String noonlightApiUri() { return "https://api-sandbox.safetrek.io/v1/alarms" }
+
 definition(
     name: "Noonlight Monitoring",
     namespace: "konnected-io",
@@ -34,52 +37,55 @@ preferences {
 def pageConfiguration() {
   if(!state.accessToken) { createAccessToken() }
     if(!validNoonlightToken()) {
-        dynamicPage(name: "pageConfiguration") {
-            section("Activate your Noonlight account") {
-                href(
-                    name:        "oauth_init",
-                    image:       "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico",
-                    title:       "Tap to connect to Noonlight",
-                    description: "Start your free trial or sign in",
-                    url:         "https://konnected-noonlight.herokuapp.com/st/auth/?app_id=${app.id}&api_host=${apiServerUrl}&access_token=${state.accessToken}",
-                    style: "embedded", required: true
-                )
-            }
-        }
-    } else {
       dynamicPage(name: "pageConfiguration") {
-            section {
-              paragraph("Awesome. You are connected to Noonlight!",
-                  image:       "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico")
-            }
-            section("Select the services that you want to monitor with Noonlight. Each enabled service will create a virtual switch in SmartThings that you can use to trigger an alarm manually or automatically." ) {        
-                input(
-                name: "police",
-                type: "bool",
-                title: "Police",
-                required: false,
-                defaultValue: true
-            )
-                input(
-                name: "fire",
-                type: "bool",
-                title: "Fire",
-                required: false,
-                defaultValue: true
-            )
-                input(
-                name: "medical",
-                type: "bool",
-                title: "Medical",
-                required: false,
-                defaultValue: true
-            )
-      }
-            section {
-              paragraph "v0.0.1"
-            }
+        section("Activate your Noonlight account") {
+          href(
+            name:        "oauth_init",
+            image:       "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico",
+            title:       "Tap to connect to Noonlight",
+            description: "Start your free trial or sign in",
+            url:         "https://konnected-noonlight.herokuapp.com/st/auth/?app_id=${app.id}&api_host=${apiServerUrl}&access_token=${state.accessToken}",
+            style: "embedded", required: true
+          )
         }
+      }
+  } else {
+    dynamicPage(name: "pageConfiguration") {
+      section {
+        paragraph("You are connected to Noonlight!",
+          image:       "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico")
+      }
+      section("Select the emergency services that you want Noonlight to monitor. Each enabled service will create a virtual switch in SmartThings that you can use to trigger an alarm manually or automatically." ) {
+        input(
+          name: "police",
+          type: "bool",
+          title: "Police",
+          required: false,
+          defaultValue: true
+        )
+        input(
+          name: "fire",
+          type: "bool",
+          title: "Fire",
+          required: false,
+          defaultValue: true
+        )
+        input(
+          name: "medical",
+          type: "bool",
+          title: "Medical",
+          required: false,
+          defaultValue: true
+        )
+      }
+      section {
+        paragraph "Tap Save in the top right of this screen. Then configure Smart Home Monitor to 'Alert with Lights' and select the Noonlight virtual switch to turn on when there's an alarm."
+          paragraph "Noonlight will recieve your home's GPS coordinates in an alarm. Make sure your location is set accurately in your hub's settings!"
+          paragraph "Noonlight SmartApp v${version()}"
+
+      }
     }
+  }
 }
 
 def installed() {
@@ -111,20 +117,20 @@ def updateNoonlightToken() {
 def createAlarm(dni) {
   def service = dni.split('-')[-1]
     def alarm_attributes = [
-        uri: 'https://api-sandbox.safetrek.io/v1/alarms',
+        uri: noonlightApiUri(),
         body: [
-            services: [ 
-              police: (service == 'police'), 
-                fire: (service == 'fire'), 
-                medical: (service == 'medical') 
+            services: [
+              police: (service == 'police'),
+              fire: (service == 'fire'),
+              medical: (service == 'medical')
             ],
             'location.coordinates': [ lat: location.getLatitude(), lng: location.getLongitude(), accuracy: 5 ]
         ],
         headers: ['Authorization': "Bearer ${state.noonlightToken}"]
     ]
-    
+
     try {
-        httpPostJson(alarm_attributes) { response -> 
+        httpPostJson(alarm_attributes) { response ->
           log.debug response.data
             processNoonlightResponse(response.data)
         }
@@ -135,9 +141,9 @@ def createAlarm(dni) {
 
 def cancelAlarm(dni) {
   def service = dni.split('-')[-1]
-    def alarm_id = state[service]
+  def alarm_id = state[service]
   def alarm_attributes = [
-        uri: "https://api-sandbox.safetrek.io/v1/alarms/$alarm_id/status",
+        uri: "${noonlightApiUri()}/$alarm_id/status",
         body: [ status: "CANCELED" ],
         headers: ['Authorization': "Bearer ${state.noonlightToken}"]
     ]

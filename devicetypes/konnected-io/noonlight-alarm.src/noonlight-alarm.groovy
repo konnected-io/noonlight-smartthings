@@ -23,15 +23,19 @@ metadata {
   preferences {  }
 
   tiles {
-    multiAttributeTile(name:"main", type: "generic", width: 6, height: 4, canChangeIcon: true) {
+  	valueTile("view", "device.switch", decoration: "flat") {
+      state ("off", icon: "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico", label: "Idle")
+    	state ("on", icon: "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico", label: "Alarm!", backgroundColor:"#e86d13")
+    }
+    multiAttributeTile(name:"main", type: "generic", width: 6, height: 4, canChangeIcon: true, decoration: "flat") {
       tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
-        attributeState ("off",  label: "Off",    icon:"https://uploads-ssl.webflow.com/5b283a9ce1d84c649b724269/5b2bd47b7afad82c303a2868_fav1.png", action:"alarm.both", backgroundColor:"#ffffff", nextState: "turningOn")
+        attributeState ("off",  label: "Idle",    icon:"https://uploads-ssl.webflow.com/5b283a9ce1d84c649b724269/5b2bd47b7afad82c303a2868_fav1.png", action:"alarm.both", backgroundColor:"#ffffff", nextState: "turningOn")
         attributeState ("on", label: "Alarm!", icon:"st.security.alarm.alarm", action:"alarm.off",  backgroundColor:"#e86d13", nextState: "turningOff")
         attributeState ("turningOn", label:'Activating', icon:"st.security.alarm.alarm", action:"alarm.off", backgroundColor:"#e86d13", nextState: "turningOff")
-        attributeState ("turningOff", label:'Turning off', icon:"st.security.alarm.clear", action:"alarm.on", backgroundColor:"#ffffff", nextState: "turningOn")
+        attributeState ("turningOff", label:'Canceling', icon:"st.security.alarm.clear", action:"alarm.on", backgroundColor:"#ffffff", nextState: "turningOn")
       }
     }
-    main "main"
+    main "view"
     details "main"
   }
 }
@@ -59,4 +63,3 @@ def both() { on() }
 def strobe() { on() }
 
 def siren() { on() }
-
