@@ -20,11 +20,11 @@ definition(
     name: "Noonlight Monitoring",
     namespace: "konnected-io",
     author: "Nate Clark, Konnected Inc",
-    description: "Security, fire and medical emergency monitoring for your smart devices. Brought to you by Noonlight & Konnected",
+    description: "Professional 24/7 security, fire and medical emergency monitoring for all of your smart devices",
     category: "Safety & Security",
-    iconUrl: "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico",
-    iconX2Url: "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico",
-    iconX3Url: "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico")
+    iconUrl: "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white.png",
+    iconX2Url: "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png",
+    iconX3Url: "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png")
 
 mappings {
   path("/noonlight/token") { action: [ POST: "updateNoonlightToken"] }
@@ -41,7 +41,7 @@ def pageConfiguration() {
         section("Activate your Noonlight account") {
           href(
             name:        "oauth_init",
-            image:       "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico",
+            image:       "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png",
             title:       "Tap to connect to Noonlight",
             description: "Start your free trial or sign in",
             url:         "https://konnected-noonlight.herokuapp.com/st/auth/?app_id=${app.id}&api_host=${apiServerUrl}&access_token=${state.accessToken}",
@@ -53,7 +53,7 @@ def pageConfiguration() {
     dynamicPage(name: "pageConfiguration") {
       section {
         paragraph("You are connected to Noonlight!",
-          image:       "https://files.readme.io/9336861-Noonlight_Favicon_16x16-01.ico")
+          image:       "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png")
       }
       section("Select the emergency services that you want Noonlight to monitor. Each enabled service will create a virtual switch in SmartThings that you can use to trigger an alarm manually or automatically." ) {
         input(
@@ -78,11 +78,14 @@ def pageConfiguration() {
           defaultValue: true
         )
       }
-      section {
+      section("Post-install instructions") {
         paragraph "Tap Save in the top right of this screen. Then configure Smart Home Monitor to 'Alert with Lights' and select the Noonlight virtual switch to turn on when there's an alarm."
-          paragraph "Noonlight will recieve your home's GPS coordinates in an alarm. Make sure your location is set accurately in your hub's settings!"
-          paragraph "Noonlight SmartApp v${version()}"
+        paragraph "Noonlight will recieve your home's GPS coordinates in an alarm. Make sure your location is set accurately in your hub's settings!"
+      }
 
+      section("About") {
+        paragraph "This integration is brought to you by Konnected and powered by Noonlight."
+        paragraph "Noonlight SmartApp v${version()}"
       }
     }
   }
