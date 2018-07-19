@@ -175,9 +175,6 @@ def processNoonlightResponse(data) {
       if (enabled) {
         state[service] = data.id
         getChildDevice("noonlight-$service")?.switchOn()
-      } else {
-        state[service] = null
-        getChildDevice("noonlight-$service")?.switchOff()
       }
    	}
   }
