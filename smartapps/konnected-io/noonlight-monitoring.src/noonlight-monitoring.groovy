@@ -120,23 +120,27 @@ def updateNoonlightToken() {
 def createAlarm(dni) {
   def service = dni.split('-')[-1]
     def alarm_attributes = [
-        uri: noonlightApiUri(),
-        body: [
-            services: [
-              police: (service == 'police'),
-              fire: (service == 'fire'),
-              medical: (service == 'medical')
-            ],
-            'location.coordinates': [ lat: location.getLatitude(), lng: location.getLongitude(), accuracy: 5 ]
+      uri: noonlightApiUri(),
+      body: [
+        services: [
+          police: (service == 'police'),
+          fire: (service == 'fire'),
+          medical: (service == 'medical')
         ],
-        headers: ['Authorization': "Bearer ${state.noonlightToken}"]
+        'location.coordinates': [ lat: location.getLatitude(), lng: location.getLongitude(), accuracy: 5 ]
+      ],
+      headers: ['Authorization': "Bearer ${state.noonlightToken}"]
     ]
 
     try {
-        httpPostJson(alarm_attributes) { response ->
-          log.debug response.data
-            processNoonlightResponse(response.data)
+      httpPostJson(alarm_attributes) { response ->
+        log.debug "Noonlight response: $response.data"
+        if (response.status >= 200 && response.status < 300) {
+          processNoonlightResponse(response.data)
+        } else {
+          sendPush("An error occurred connecting to Noonlight and your alert was not sent. If this is a real emergency, call 911.")
         }
+      }
     } catch(e) {
       log.error "something went wrong: $e"
     }
@@ -151,7 +155,7 @@ def cancelAlarm(dni) {
         headers: ['Authorization': "Bearer ${state.noonlightToken}"]
     ]
   try {
-        httpPutJson(alarm_attributes) { response -> 
+        httpPutJson(alarm_attributes) { response ->
           log.debug response.data
             if (response.data.status == 200) {
               state.currentAlarms[service] = null
@@ -164,19 +168,19 @@ def cancelAlarm(dni) {
 }
 
 def processNoonlightResponse(data) {
-  state.currentAlarms = {} 
-    if (data.status == 'ACTIVE') {
-        data.services.each { service, enabled ->
-          log.debug "service $service is $enabled"
-          if (enabled) {
-              state[service] = data.id
-              getChildDevice("noonlight-$service")?.switchOn()                
-            } else {
-              state[service] = null
-                getChildDevice("noonlight-$service")?.switchOff()
-            }
-        }
-    }
+  state.currentAlarms = {}
+  if (data.status == 'ACTIVE') {
+  	data.services.each { service, enabled ->
+      log.debug "service $service is $enabled"
+      if (enabled) {
+        state[service] = data.id
+        getChildDevice("noonlight-$service")?.switchOn()
+      } else {
+        state[service] = null
+        getChildDevice("noonlight-$service")?.switchOff()
+      }
+   	}
+  }
 }
 
 def validNoonlightToken() {
