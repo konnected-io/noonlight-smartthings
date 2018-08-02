@@ -14,24 +14,23 @@
  *
  */
 metadata {
-  definition (name: "Noonlight Alarm", namespace: "konnected-io", author: "konnected.io") {
+  definition (name: "Noonlight Alarm", namespace: "konnected-io", author: "konnected.io", mnmn: "SmartThings", vid: "generic-siren") {
     capability "Alarm"
     capability "Switch"
-    capability "Actuator"
   }
 
   preferences {  }
 
   tiles(scale: 2) {
-  	valueTile("view", "device.switch", decoration: "flat") {
+  	valueTile("view", "device.alarm", decoration: "flat") {
       state ("off", icon: "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png", label: "Idle")
-      state ("on", icon: "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png", label: "Alarm!", backgroundColor:"#166efb")
+      state ("both", icon: "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png", label: "Alarm!", backgroundColor:"#166efb")
     }
-    standardTile("switch", "device.switch", decoration: "flat", width: 6, height: 4) {
-      state "off",  label: "Idle", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"switch.on", backgroundColor:"#ffffff", nextState: "turningOn"
-      state "on", label: "Alarm in Progress", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"switch.off",  backgroundColor:"#344351", nextState: "turningOff"
-      state "turningOn", label:'Activating', icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"switch.off", backgroundColor:"#166efb", nextState: "turningOff"
-      state "turningOff", label:'Canceling Alarm', icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"switch.on", backgroundColor:"#ffffff", nextState: "turningOn"
+    standardTile("switch", "device.alarm", decoration: "flat", width: 6, height: 4) {
+      state "off",  label: "Idle", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"alarm.both", backgroundColor:"#ffffff", nextState: "turningOn"
+      state "both", label: "Alarm in Progress", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"alarm.off",  backgroundColor:"#344351", nextState: "turningOff"
+      state "turningOn", label:'Activating', icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"alarm.off", backgroundColor:"#166efb", nextState: "turningOff"
+      state "turningOff", label:'Canceling Alarm', icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"alarm.both", backgroundColor:"#ffffff", nextState: "turningOn"
     }
     main "view"
     details "switch"
@@ -39,21 +38,21 @@ metadata {
 }
 
 def off() {
-  parent.cancelAlarm(device.deviceNetworkId)
+  parent.cancelAlarm()
 }
 
 def on() {
-  parent.createAlarm(device.deviceNetworkId)
+  parent.createAlarm()
 }
 
 def switchOn() {
   log.debug "alarm is active"
-  sendEvent(name: "switch", value: "on")
+  sendEvent(name: "alarm", value: "both")
 }
 
 def switchOff() {
   log.debug "alarm is cancelled"
-  sendEvent(name: "switch", value: "off")
+  sendEvent(name: "alarm", value: "off")
 }
 
 def both() { on() }
