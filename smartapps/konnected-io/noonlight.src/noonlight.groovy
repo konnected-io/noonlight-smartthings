@@ -16,7 +16,7 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "0.0.3" }
+public static String version() { return "0.1.0" }
 public static String noonlightApiUri() { return "https://api-sandbox.safetrek.io/v1/alarms" }
 
 definition(
@@ -58,24 +58,31 @@ def pageConfiguration() {
         paragraph("You are connected to Noonlight!",
           image:       "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png")
       }
-      section("Noonlight will receive data from the sensors in your home only when in alarm") {
+
+      section("Noonlight will receive information from these devices when an alarm is triggered") {
         input "contactSensors", "capability.contactSensor", title: "Doors & Windows", multiple: true, required: false
         input "motionSensors", "capability.motionSensor", title: "Motion Sensors", multiple: true, required: false
         input "smokeDetectors", "capability.smokeDetector", title: "Smoke Detectors", multiple: true, required: false
         input "coDetectors", "capability.carbonMonoxideDetector", title: "Carbon Monoxide Detectors", multiple: true, required: false
-		input "tempSensors", "capability.temperatureMeasurement", title: "Temperature Sensors", multiple: true, required: false
+        input "tempSensors", "capability.temperatureMeasurement", title: "Temperature Sensors", multiple: true, required: false
       }
-      section("Share Presence with Noonlight in an alarm so we know who is home") {
+
+      section("Share Presence with Noonlight when there's an emergency so we know who is home") {
         input "presenceSensors", "capability.presenceSensor", title: "Presence sensor(s)", multiple: true, required: false
       }
 
-      section("Post-install instructions") {
-        paragraph "Tap Save in the top right of this screen. Then configure Smart Home Monitor to 'Alert with Lights' and select the Noonlight virtual switch to turn on when there's an alarm."
-        paragraph "Noonlight will recieve your home's GPS coordinates in an alarm. Make sure your location is set accurately in your hub's settings!"
+      section("What's next?") {
+        paragraph "Configure Smart Home Monitor to alert Noonlight in an emergency. Go to Smart Home Monitor > Configure > Security and/or Smoke > Alert with lights > Noonlight"
+      }
+
+      section("How does Noonlight work?") {
+        paragraph "Immediately after an alarm is triggered from your smart device, a certified Noonlight dispatcher will receive information about your smart home devices and will attempt to contact you. If there's an emergency, Noonlight will send the appropriate first responders to your home. (Be sure to check your home location in Location Settings.)"
+        paragraph "False alarm? Simply cancel with your 4-digit Noonlight PIN when contacted."
       }
 
       section("About") {
-        paragraph "This integration is brought to you by Konnected and powered by Noonlight."
+        paragraph "This integration was created by Konnected and is powered by Noonlight."
+        href(title: "Learn more at noonlight.com", url: "https://noonlight.com")
         paragraph "Noonlight SmartApp v${version()}"
       }
     }
@@ -97,8 +104,8 @@ def updated() {
 
 def initialize() {
   runEvery5Minutes(validNoonlightToken)
-    validNoonlightToken()
-    childDeviceConfiguration()
+  validNoonlightToken()
+  childDeviceConfiguration()
 }
 
 def updateNoonlightToken() {
