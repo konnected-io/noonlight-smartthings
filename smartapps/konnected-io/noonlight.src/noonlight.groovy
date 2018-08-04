@@ -171,7 +171,7 @@ def processNoonlightResponse(data) {
 def sendEventsToNoonlight(events) {
   def events_params = [
     uri: noonlightApiBase() + 'st-events',
-    body: events,
+    body: events.unique(),
     headers: ['Authorization': "Bearer ${state.noonlightToken}"]
   ]
 
