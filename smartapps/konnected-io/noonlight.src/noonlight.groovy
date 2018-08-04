@@ -16,8 +16,8 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "0.1.0" }
-public static String noonlightApiUri() { return "https://api-sandbox.safetrek.io/v1/alarms" }
+public static String version() { return "0.1.1" }
+public static String noonlightApiBase() { return "https://api-sandbox.safetrek.io/v1/" }
 
 definition(
     name: "Noonlight",
@@ -117,7 +117,7 @@ def updateNoonlightToken() {
 
 def createAlarm() {
   def alarm_attributes = [
-    uri: noonlightApiUri(),
+    uri: noonlightApiBase() + 'alarms',
     body: [
       'location.coordinates': [ lat: location.getLatitude(), lng: location.getLongitude(), accuracy: 5 ],
     ],
@@ -143,7 +143,7 @@ def createAlarm() {
 def cancelAlarm() {
   def alarm_id = state.currentAlarm
   def alarm_attributes = [
-    uri: "${noonlightApiUri()}/$alarm_id/status",
+    uri: "${noonlightApiBase()}alarms/$alarm_id/status",
     body: [ status: "CANCELED" ],
     headers: ['Authorization': "Bearer ${state.noonlightToken}"]
   ]
@@ -164,13 +164,26 @@ def processNoonlightResponse(data) {
   if (data.status == 'ACTIVE') {
     state.currentAlarm = data.id
     getChildDevice("noonlight")?.switchOn()
-    sendEventsToNoonlight()
+    sendEventsToNoonlight(collectRecentEvents() + collectCurrentStates())
   }
 }
 
-def sendEventsToNoonlight() {
-  def currentStates = collectCurrentStates()
-  def recentEvents = collectRecentEvents()
+def sendEventsToNoonlight(events) {
+  def events_params = [
+    uri: noonlightApiBase() + 'st-events',
+    body: events,
+    headers: ['Authorization': "Bearer ${state.noonlightToken}"]
+  ]
+
+  log.debug JsonOutput.toJson(events_params.body)
+
+  try {
+    httpPostJson(events_params) { response ->
+      log.debug "Noonlight Response: $response.data"
+    }
+  } catch(e) {
+    log.error "$e $e.response.data"
+  }
 }
 
 def validNoonlightToken() {
@@ -199,7 +212,7 @@ def childDeviceConfiguration() {
 def payloadFor(device, attr) {
   def st = device.currentState(attr)
   return [
-  	timestamp: st.date,
+  	timestamp: st.date.format("yyyy-MM-dd'T'HH:mm:ss'Z'"),
     device_id: device.id,
     device_model: device.modelName,
     device_manufacturer: device.manufacturerName,
@@ -207,7 +220,7 @@ def payloadFor(device, attr) {
     attribute: attr,
     value: st.value,
     unit: st.unit
-  ]
+  ].findAll { it.value }
 }
 
 def collectCurrentStates() {
@@ -219,21 +232,26 @@ def collectCurrentStates() {
       presenceSensors.collect{ payloadFor(it, 'presence') }
 }
 
+def allDevices() {
+  return (
+  	motionSensors +
+  	contactSensors +
+    smokeDetectors +
+    tempSensors +
+    presenceSensors).unique{ d -> d.id }
+}
+
 def collectRecentEvents() {
   def fiveMinutesAgo = new Date()
   use(TimeCategory) {
     fiveMinutesAgo = fiveMinutesAgo - 5.minutes
   }
 
-  def allEvents = motionSensors.eventsSince(fiveMinutesAgo) +
-    contactSensors.eventsSince(fiveMinutesAgo) +
-    smokeDetectors.eventsSince(fiveMinutesAgo) +
-    tempSensors.eventsSince(fiveMinutesAgo) +
-    presenceSensors.eventsSince(fiveMinutesAgo)
+  def allEvents = allDevices().eventsSince(fiveMinutesAgo)
 
   return allEvents.flatten().findAll { it.isStateChange() }.collect {
   	[
-      timestamp: it.date,
+      timestamp: it.date.format("yyyy-MM-dd'T'HH:mm:ss'Z'"),
       device_id: it.deviceId,
       device_model: it.device.modelName,
       device_manufacturer: it.device.manufacturerName,
@@ -241,6 +259,6 @@ def collectRecentEvents() {
       attribute: it.name,
       value: it.value,
       unit: it.unit
-    ]
+    ].findAll { it.value }
   }
 }
