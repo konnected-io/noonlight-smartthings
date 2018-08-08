@@ -28,9 +28,8 @@ metadata {
     }
     standardTile("switch", "device.alarm", decoration: "flat", width: 6, height: 4) {
       state "off",  label: "Idle", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"alarm.both", backgroundColor:"#ffffff", nextState: "turningOn"
-      state "both", label: "Alarm in Progress", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"alarm.off",  backgroundColor:"#344351", nextState: "turningOff"
-      state "turningOn", label:'Activating', icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"alarm.off", backgroundColor:"#166efb", nextState: "turningOff"
-      state "turningOff", label:'Canceling Alarm', icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"alarm.both", backgroundColor:"#ffffff", nextState: "turningOn"
+      state "both", label: "Alarm in Progress", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", backgroundColor:"#344351", nextState: "turningOff"
+      state "turningOn", label:'Activating', icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", backgroundColor:"#166efb", nextState: "turningOff"
     }
     main "view"
     details "switch"
@@ -38,7 +37,10 @@ metadata {
 }
 
 def off() {
-  parent.cancelAlarm()
+  // Canceling the alarm from SmartThings is currently disabled for your safety.
+  // A Noonlight agent will contact the account owner who can cancel the alarm with his/her PIN.
+  //
+  // parent.cancelAlarm()
 }
 
 def on() {
