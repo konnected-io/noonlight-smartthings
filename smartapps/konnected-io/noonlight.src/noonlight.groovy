@@ -16,7 +16,7 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "0.1.2" }
+public static String version() { return "0.1.3" }
 public static String noonlightApiBase() { return "https://api-sandbox.safetrek.io/v1/" }
 
 definition(
@@ -99,6 +99,13 @@ def updated() {
   log.debug "Updated with settings: ${settings}"
 
   unsubscribe()
+  subscribe(motionSensors, "motion", eventHandler)
+  subscribe(contactSensors, "contact", eventHandler)
+  subscribe(smokeDetectors, "smoke", eventHandler)
+  subscribe(coDetectors, "carbonMonoxide", eventHandler)
+  subscribe(tempSensors, "temperature", eventHandler)
+  subscribe(presenceSensors, "presence", eventHandler)
+
   initialize()
 }
 
@@ -160,7 +167,6 @@ def cancelAlarm() {
     log.error "$e"
   }
 }
-
 
 // Gets the state of an active alarm from Noonlight and updates if necessary
 def getAlarm() {
@@ -274,15 +280,25 @@ def collectRecentEvents() {
   def allEvents = allDevices().eventsSince(fiveMinutesAgo)
 
   return allEvents.flatten().findAll { it.isStateChange() }.collect {
-  	[
-      timestamp: it.date.format("yyyy-MM-dd'T'HH:mm:ss'Z'"),
-      device_id: it.deviceId,
-      device_model: it.device.modelName,
-      device_manufacturer: it.device.manufacturerName,
-      device_name: it.displayName,
-      attribute: it.name,
-      value: it.value,
-      unit: it.unit
-    ].findAll { it.value }
+  	eventFormatter(it)
   }
+}
+
+def eventFormatter(evt) {
+  return [
+    timestamp: evt.date.format("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+    device_id: evt.deviceId,
+    device_model: evt.device.modelName,
+    device_manufacturer: evt.device.manufacturerName,
+    device_name: evt.displayName,
+    attribute: evt.name,
+    value: evt.value,
+    unit: evt.unit
+  ].findAll { it.value }
+}
+
+def eventHandler(evt) {
+  def alarm_id = state.currentAlarm
+  if (alarm_id == null) { return false }
+  sendEventsToNoonlight([eventFormatter(evt)])
 }
