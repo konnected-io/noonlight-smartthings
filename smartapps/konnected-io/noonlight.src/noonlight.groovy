@@ -16,7 +16,7 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "0.1.1" }
+public static String version() { return "0.1.2" }
 public static String noonlightApiBase() { return "https://api-sandbox.safetrek.io/v1/" }
 
 definition(
@@ -104,6 +104,7 @@ def updated() {
 
 def initialize() {
   runEvery5Minutes(validNoonlightToken)
+  runEvery1Minute(getAlarm)
   validNoonlightToken()
   childDeviceConfiguration()
 }
@@ -151,6 +152,29 @@ def cancelAlarm() {
     httpPutJson(alarm_attributes) { response ->
       log.debug response.data
       if (response.data.status == 200) {
+        state.currentAlarm = null
+        getChildDevice("noonlight").switchOff()
+      }
+    }
+  } catch(e) {
+    log.error "$e"
+  }
+}
+
+
+// Gets the state of an active alarm from Noonlight and updates if necessary
+def getAlarm() {
+  def alarm_id = state.currentAlarm
+  if (alarm_id == null) { return false }
+  def alarm_attributes = [
+    uri: "${noonlightApiBase()}alarms/$alarm_id/status",
+    headers: ['Authorization': "Bearer ${state.noonlightToken}"],
+    contentType: 'application/json'
+  ]
+  try {
+    httpGet(alarm_attributes) { response ->
+      log.debug "Noonlight alarm status: $response.data"
+      if (response.data.status == "CANCELED") {
         state.currentAlarm = null
         getChildDevice("noonlight").switchOff()
       }
