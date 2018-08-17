@@ -16,7 +16,7 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "0.1.3" }
+public static String version() { return "0.1.4" }
 public static String noonlightApiBase() { return "https://api-sandbox.safetrek.io/v1/" }
 
 definition(
@@ -73,10 +73,15 @@ def pageConfiguration() {
 
       section("What's next?") {
         paragraph "Configure Smart Home Monitor to alert Noonlight in an emergency. Go to Smart Home Monitor > Configure > Security and/or Smoke > Alert with lights > Noonlight"
+        href(
+          title: "Tap to check your location setting",
+          description: "Noonlight will receive your home's geo-location when an alarm is triggered. This link opens in Google's reverse geocoder to your home address. If it's inaccurate, go to your SmartThing hub's settings to set location precisely.",
+          url: "https://google-developers.appspot.com/maps/documentation/utils/geocoder/#q=${location.getLatitude()},${location.getLongitude()}"
+        )
       }
 
       section("How does Noonlight work?") {
-        paragraph "Immediately after an alarm is triggered from your smart device, a certified Noonlight dispatcher will receive information about your smart home devices and will attempt to contact you. If there's an emergency, Noonlight will send the appropriate first responders to your home. (Be sure to check your home location in Location Settings.)"
+        paragraph "Immediately after an alarm is triggered from your smart home, a certified Noonlight dispatcher will text and call you. If you’re unable to respond, or if you can confirm your emergency, they will send the appropriate first responders to your home."
         paragraph "False alarm? Simply cancel with your 4-digit Noonlight PIN when contacted."
       }
 
@@ -148,6 +153,8 @@ def createAlarm() {
   }
 }
 
+// Cancels an active alarm
+// This function is currently not used. For safety, you must cancel a false alarm with a Noonlight dispatcher using your PIN.
 def cancelAlarm() {
   def alarm_id = state.currentAlarm
   def alarm_attributes = [
@@ -182,6 +189,7 @@ def getAlarm() {
       log.debug "Noonlight alarm status: $response.data"
       if (response.data.status == "CANCELED") {
         state.currentAlarm = null
+        sendPush("The Noonlight alarm has been canceled.")
         getChildDevice("noonlight").switchOff()
       }
     }
@@ -194,6 +202,7 @@ def processNoonlightResponse(data) {
   if (data.status == 'ACTIVE') {
     state.currentAlarm = data.id
     getChildDevice("noonlight")?.switchOn()
+    sendPush("Noonlight has been notified of an emergency and is sending help! A Noonlight dispatcher will contact the account owner shortly.")
     sendEventsToNoonlight(collectRecentEvents() + collectCurrentStates())
   }
 }
@@ -212,6 +221,7 @@ def sendEventsToNoonlight(events) {
       log.debug "Noonlight Response: $response.data"
     }
   } catch(e) {
+    sendPush("There was an error sending your smart home status to Noonlight. Noonlight has still been notified of an emergency, but may not have detailed information.")
     log.error "$e $e.response.data"
   }
 }
