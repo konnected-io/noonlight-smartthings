@@ -16,8 +16,9 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "0.1.5" }
+public static String version() { return "0.1.6" }
 public static String noonlightApiBase() { return "https://api-sandbox.safetrek.io/v1/" }
+public static String authBrokerUri() { return "https://konnected-noonlight.herokuapp.com/st/auth/" }
 
 definition(
     name: "Noonlight",
@@ -47,7 +48,7 @@ def pageConfiguration() {
             image:       "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png",
             title:       "Connect Noonlight",
             description: "Sign in or sign up to get started",
-            url:         "https://konnected-noonlight.herokuapp.com/st/auth/?app_id=${app.id}&api_host=${apiServerUrl}&access_token=${state.accessToken}",
+            url:         "${authBrokerUri()}?app_id=${app.id}&api_host=${apiServerUrl}&access_token=${state.accessToken}",
             style: "embedded"
           )
         }
