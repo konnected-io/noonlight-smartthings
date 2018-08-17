@@ -16,7 +16,7 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "0.1.4" }
+public static String version() { return "0.1.5" }
 public static String noonlightApiBase() { return "https://api-sandbox.safetrek.io/v1/" }
 
 definition(
@@ -289,7 +289,7 @@ def collectRecentEvents() {
 
   def allEvents = allDevices().eventsSince(fiveMinutesAgo)
 
-  return allEvents.flatten().findAll { it.isStateChange() }.collect {
+  return allEvents.flatten().findAll { it.isStateChange() && it.source == 'DEVICE' }.collect {
   	eventFormatter(it)
   }
 }
