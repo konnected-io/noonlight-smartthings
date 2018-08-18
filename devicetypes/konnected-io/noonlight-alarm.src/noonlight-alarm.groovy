@@ -22,13 +22,13 @@ metadata {
   preferences {  }
 
   tiles(scale: 2) {
-  	valueTile("view", "device.alarm", decoration: "flat") {
+  	valueTile("view", "device.switch", decoration: "flat") {
       state ("off", icon: "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png", label: "Idle")
-      state ("both", icon: "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png", label: "Alarm!", backgroundColor:"#166efb")
+      state ("on", icon: "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png", label: "Alarm!", backgroundColor:"#166efb")
     }
-    standardTile("switch", "device.alarm", decoration: "flat", width: 6, height: 4) {
-      state "off",  label: "Idle", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"alarm.both", backgroundColor:"#ffffff", nextState: "turningOn"
-      state "both", label: "Alarm in Progress", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", backgroundColor:"#344351", nextState: "turningOff"
+    standardTile("switch", "device.switch", decoration: "flat", width: 6, height: 4) {
+      state "off",  label: "Idle", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", action:"switch.on", backgroundColor:"#ffffff", nextState: "turningOn"
+      state "on", label: "Alarm in Progress", icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", backgroundColor:"#344351", nextState: "turningOff"
       state "turningOn", label:'Activating', icon:"https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white3x.png", backgroundColor:"#166efb", nextState: "turningOff"
     }
     main "view"
@@ -49,12 +49,14 @@ def on() {
 
 def switchOn() {
   log.debug "alarm is active"
-  sendEvent(name: "alarm", value: "both")
+  sendEvent(name: "switch", value: "on")
+  sendEvent(name: "alarm", value: "siren", displayed: false)
 }
 
 def switchOff() {
   log.debug "alarm is cancelled"
-  sendEvent(name: "alarm", value: "off")
+  sendEvent(name: "switch", value: "off")
+  sendEvent(name: "alarm", value: "off", displayed: false)
 }
 
 def both() { on() }
