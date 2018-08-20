@@ -16,9 +16,15 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "0.1.6" }
-public static String noonlightApiBase() { return "https://api-sandbox.safetrek.io/v1/" }
-public static String authBrokerUri() { return "https://konnected-noonlight.herokuapp.com/st/auth/" }
+public static String version() { return "1.0.0" }
+
+// Live
+public static String noonlightApiBase() { return "https://api.safetrek.io/v1/" }
+public static String authBrokerUri() { return "https://noonlight.konnected.io/st/auth/" }
+
+// Sandbox
+// public static String noonlightApiBase() { return "https://api-sandbox.safetrek.io/v1/" }
+// public static String authBrokerUri() { return "https://konnected-noonlight.herokuapp.com/st/auth/" }
 
 definition(
     name: "Noonlight",
