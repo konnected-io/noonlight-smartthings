@@ -60,7 +60,8 @@ def pageConfiguration() {
           image:       "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png")
       }
 
-      section("Noonlight will receive information from these devices when an alarm is triggered") {
+      section("Sensors") {
+        paragraph "Noonlight will receive information from these devices when an alarm is triggered"
         input "contactSensors", "capability.contactSensor", title: "Doors & Windows", multiple: true, required: false
         input "motionSensors", "capability.motionSensor", title: "Motion Sensors", multiple: true, required: false
         input "smokeDetectors", "capability.smokeDetector", title: "Smoke Detectors", multiple: true, required: false
@@ -68,7 +69,8 @@ def pageConfiguration() {
         input "tempSensors", "capability.temperatureMeasurement", title: "Temperature Sensors", multiple: true, required: false
       }
 
-      section("Share Presence with Noonlight when there's an emergency so we know who is home") {
+      section("Presence") {
+        paragraph "Share Presence with Noonlight when there's an emergency so we know who is home"
         input "presenceSensors", "capability.presenceSensor", title: "Presence sensor(s)", multiple: true, required: false
       }
 
@@ -76,7 +78,7 @@ def pageConfiguration() {
         paragraph "Configure Smart Home Monitor to alert Noonlight in an emergency. Go to Smart Home Monitor > Configure > Security and/or Smoke > Alert with lights > Noonlight"
         href(
           title: "Tap to check your location setting",
-          description: "Noonlight will receive your home's geo-location when an alarm is triggered. This link opens in Google's reverse geocoder to your home address. If it's inaccurate, go to your SmartThing hub's settings to set location precisely.",
+          description: "Noonlight will receive your home's geo-location when an alarm is triggered. Tap here to open to your home address in Google's reverse geocoder. If it's inaccurate, go to your SmartThing hub's settings to set location precisely.",
           url: "https://google-developers.appspot.com/maps/documentation/utils/geocoder/#q=${location.getLatitude()},${location.getLongitude()}"
         )
       }
@@ -88,7 +90,7 @@ def pageConfiguration() {
 
       section("About") {
         paragraph "This integration was created by Konnected and is powered by Noonlight."
-        href(title: "Learn more at noonlight.com", url: "https://noonlight.com")
+        href(title: "Learn more at noonlight.com", url: "https://noonlight.com", description: "")
         paragraph "Noonlight SmartApp v${version()}"
       }
     }
