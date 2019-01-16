@@ -16,15 +16,15 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "1.0.0" }
+public static String version() { return "1.1.0.sandbox" }
 
 // Live
-public static String noonlightApiBase() { return "https://api.safetrek.io/v1/" }
-public static String authBrokerUri() { return "https://noonlight.konnected.io/st/auth/" }
+// public static String noonlightApiBase() { return "https://sandbox.noonlight.com/platform/v1/" }
+// public static String authBrokerUri() { return "https://noonlight.konnected.io/st/auth" }
 
 // Sandbox
-// public static String noonlightApiBase() { return "https://api-sandbox.safetrek.io/v1/" }
-// public static String authBrokerUri() { return "https://konnected-noonlight.herokuapp.com/st/auth/" }
+public static String noonlightApiBase() { return "https://api-sandbox.noonlight.com/platform/v1/" }
+public static String authBrokerUri() { return "https://aki7yd9u0m.execute-api.us-east-1.amazonaws.com/dev/st/auth" }
 
 definition(
     name: "Noonlight",
@@ -237,10 +237,12 @@ def sendEventsToNoonlight(events) {
 
 def validNoonlightToken() {
   if (state.noonlightToken) {
-    def expire_date = Date.parse("yyyy-MM-dd'T'HH:mm:ss'Z'", state.noonlightTokenExpires)
+    def expire_date = parseDate(state.noonlightTokenExpires)
     def expires_in = (expire_date.time - new Date().time)
     if (expires_in > 0) {
-    log.debug "Noonlight token is valid for $expires_in milliseconds"
+    def hrs = (expires_in / (3600000)) as Integer
+	  def mins = ((expires_in % 3600000) / 60000) as Integer
+	  log.debug "Noonlight token is valid for ${hrs}h ${mins}m"
       return true
     } else {
       log.debug "Noonlight token has expired!"
@@ -261,7 +263,7 @@ def childDeviceConfiguration() {
 def payloadFor(device, attr) {
   def st = device.currentState(attr)
   return [
-  	timestamp: st.date.format("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+  	timestamp: st.date.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC')),
     device_id: device.id,
     device_model: device.modelName,
     device_manufacturer: device.manufacturerName,
@@ -305,7 +307,7 @@ def collectRecentEvents() {
 
 def eventFormatter(evt) {
   return [
-    timestamp: evt.date.format("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+    timestamp: evt.date.format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC')),
     device_id: evt.deviceId,
     device_model: evt.device.modelName,
     device_manufacturer: evt.device.manufacturerName,
@@ -320,4 +322,12 @@ def eventHandler(evt) {
   def alarm_id = state.currentAlarm
   if (alarm_id == null) { return false }
   sendEventsToNoonlight([eventFormatter(evt)])
+}
+
+def parseDate(dateStr) {
+  try {
+	Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSSX", dateStr)
+  } catch(ParseException) {
+  	Date.parse("yyyy-MM-dd'T'HH:mm:ssX", dateStr)
+  }
 }
