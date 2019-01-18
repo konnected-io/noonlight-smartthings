@@ -16,15 +16,15 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "1.1.0.sandbox" }
+public static String version() { return "1.1.0" }
 
 // Live
-// public static String noonlightApiBase() { return "https://sandbox.noonlight.com/platform/v1/" }
-// public static String authBrokerUri() { return "https://noonlight.konnected.io/st/auth" }
+public static String noonlightApiBase() { return "https://api.noonlight.com/platform/v1/" }
+public static String authBrokerUri() { return "https://noonlight.konnected.io/st/auth" }
 
 // Sandbox
-public static String noonlightApiBase() { return "https://api-sandbox.noonlight.com/platform/v1/" }
-public static String authBrokerUri() { return "https://aki7yd9u0m.execute-api.us-east-1.amazonaws.com/dev/st/auth" }
+// public static String noonlightApiBase() { return "https://api-sandbox.noonlight.com/platform/v1/" }
+// public static String authBrokerUri() { return "https://aki7yd9u0m.execute-api.us-east-1.amazonaws.com/dev/st/auth" }
 
 definition(
     name: "Noonlight",
