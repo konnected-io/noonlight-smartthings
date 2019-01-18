@@ -54,7 +54,7 @@ def pageConfiguration() {
             image:       "https://s3.amazonaws.com/konnected-noonlight/noonlight-symbol-white2x.png",
             title:       "Connect Noonlight",
             description: "Sign in or sign up to get started",
-            url:         "${authBrokerUri()}?app_id=${app.id}&api_host=${apiServerUrl}&access_token=${state.accessToken}",
+            url:         "${authBrokerUri()}?app_id=${app.id}&api_host=${apiServerUrl}&access_token=${state.accessToken}&v=${version()}",
             style: "embedded"
           )
         }
