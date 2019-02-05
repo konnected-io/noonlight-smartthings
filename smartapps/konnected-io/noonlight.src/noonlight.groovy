@@ -16,7 +16,7 @@
 import groovy.time.TimeCategory
 import groovy.json.JsonOutput
 
-public static String version() { return "1.1.0" }
+public static String version() { return "1.1.1" }
 
 // Live
 public static String noonlightApiBase() { return "https://api.noonlight.com/platform/v1/" }
@@ -146,6 +146,11 @@ def createAlarm() {
     headers: ['Authorization': "Bearer ${state.noonlightToken}"]
   ]
 
+  // set alarm type to 'fire' if any smoke or CO detectors have alarmed
+  if (smokeDetectors?.currentSmoke.any{ it == "detected" } || coDetectors?.currentCarbonMonoxide.any{ it == "detected" }) {
+    alarm_attributes.body.services = ['fire': true]
+  }
+
   log.debug JsonOutput.toJson(alarm_attributes.body)
 
   try {
@@ -211,12 +216,14 @@ def processNoonlightResponse(data) {
   if (data.status == 'ACTIVE') {
     state.currentAlarm = data.id
     getChildDevice("noonlight")?.switchOn()
-    sendPush("Noonlight has been notified of an emergency and is sending help! A Noonlight dispatcher will contact the account owner shortly.")
+    def alarmType = data.services.find{ it.value }?.key
+    sendPush("Noonlight has been notified of a $alarmType emergency and is sending help! A Noonlight dispatcher will contact the account owner shortly.")
     sendEventsToNoonlight(collectRecentEvents() + collectCurrentStates())
   }
 }
 
 def sendEventsToNoonlight(events) {
+  if (events.isEmpty()) { return }
   def events_params = [
     uri: noonlightApiBase() + 'st-events',
     body: events.unique(),
@@ -284,21 +291,19 @@ def collectCurrentStates() {
 }
 
 def allDevices() {
-  return (
-  	motionSensors +
-  	contactSensors +
-    smokeDetectors +
-    tempSensors +
-    presenceSensors).unique{ d -> d.id }
+  def deviceList = [motionSensors, contactSensors, smokeDetectors, tempSensors, presenceSensors].minus(null)
+  deviceList.inject(deviceList[0]){ result, list -> result + list }?.unique{ it.id }
 }
 
 def collectRecentEvents() {
+  def allDevices = allDevices()
+  if (allDevices == null) { return [] }
   def fiveMinutesAgo = new Date()
   use(TimeCategory) {
     fiveMinutesAgo = fiveMinutesAgo - 5.minutes
   }
 
-  def allEvents = allDevices().eventsSince(fiveMinutesAgo)
+  def allEvents = allDevices.eventsSince(fiveMinutesAgo)
 
   return allEvents.flatten().findAll { it.isStateChange() && it.source == 'DEVICE' }.collect {
   	eventFormatter(it)
